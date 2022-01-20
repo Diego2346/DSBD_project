@@ -1,0 +1,286 @@
+apiVersion: v1
+items:
+###############################SERVICE
+  - apiVersion: v1 #MYSQL service
+    kind: Service
+    metadata:
+      name: mysqldb
+      labels:
+        app: mysqldb
+    spec:
+      selector:
+        app: mysqldb
+      ports:
+        - name: "3306"
+          port: 3306
+          targetPort: 3306
+         
+  
+  - apiVersion: v1 #ZOOKEEPER service
+    kind: Service
+    metadata:
+      name: zookeeper
+      labels:
+        app: zookeeper
+    spec:
+      selector:
+        app: zookeeper
+      ports:
+        - name: "2181"
+          port: 2181
+          
+  - apiVersion: v1 #KAFKA service
+    kind: Service
+    metadata:
+      name: kafka
+      labels:
+        app: kafka
+    spec:
+      selector:
+        app: kafka
+      ports:
+        - name: "9092"
+          port: 9092       
+      
+  - apiVersion: v1 #EVENT service
+    kind: Service
+    metadata:
+      name: event
+      labels:
+        app: event
+    spec:
+      selector:
+        app: event
+      ports:
+        - name: "8080"
+          port: 8080 
+          
+    
+  - apiVersion: v1 #CONSUMER_LOGGING service
+    kind: Service
+    metadata:
+      name: consuemr-logging
+      labels:
+        app: consuemr-logging
+    spec:
+      selector:
+        app: consuemr-logging
+      ports:
+        - name: "8082"
+          port: 8082
+    
+  - apiVersion: v1 #API_GATEWAY service
+    kind: Service
+    metadata:
+      name: api-gateway
+      labels:
+        app: api-gateway
+    spec:
+      selector:
+        app: api-gateway
+      ports:
+        - name: "9000"
+          port: 9000
+      
+ 
+ 
+ 
+ 
+ 
+ 
+ #######################################DEPLOYMENT
+  
+  - apiVersion: apps/v1 #MYSQL deployment
+    kind: Deployment
+    metadata:
+      labels:
+        app: mysqldb
+      name: mysqldb
+    spec:
+      selector:
+        matchLabels:
+          app: mysqldb
+      template:
+        metadata:
+          labels:
+            app: mysqldb
+        spec:
+          containers:
+            - env:
+                - name: MYSQL_DATABASE
+                  value: sport
+                - name: MYSQL_ROOT_PASSWORD
+                  value: root                  
+              image: mysql:8.0
+              name: mysqldb
+              ports:
+                - containerPort: 3306
+              resources: {}
+              volumeMounts:
+                - mountPath: /var/lib/mysql
+                  name: mystorage
+          restartPolicy: Always
+          volumes:
+            - name: mystorage
+              persistentVolumeClaim:
+                claimName: mystorage
+    status: {}
+    
+    
+  - apiVersion: apps/v1 #ZOOKEEPER deployment
+    kind: Deployment
+    metadata:
+      name: zookeeper
+    spec:
+      selector:
+        matchLabels:
+          app: zookeeper
+      template:
+        metadata:
+          labels:
+            app: zookeeper
+        spec:
+          containers:
+            - name: zookeeper
+              image: library/zookeeper
+              ports:
+                - containerPort: 2181
+              env:
+                - name: ZOOKEEPER-ID
+                  value: "1"
+                - name: ZOOKEEPER-SERVER-1
+                  value: zookeeper
+                  
+  - apiVersion: apps/v1 #KAFKA deployment
+    kind: Deployment
+    metadata:
+      name: kafka
+    spec:
+      selector:
+        matchLabels:
+          app: kafka
+      template:
+        metadata:
+          labels:
+            app: kafka
+        spec:
+          containers:
+            - name: kafka
+              image: wurstmeister/kafka:2.11-2.0.0
+              ports:
+                - containerPort: 9092
+              env:
+                - name: BROKER_ID_COMMAND
+                  value: hostname | cut -d'-' -f2
+                - name: KAFKA_ADVERTISED_HOST_NAME
+                  value: kafka
+                - name: KAFKA_ADVERTISED_PORT
+                  value: "9092"
+                - name: KAFKA_BROKER_ID
+                  value: "1"
+                - name: KAFKA_CREATE_TOPICS
+                  value: logging:20:1
+                - name: KAFKA_LISTENERS
+                  value: PLAINTEXT://:9092
+                - name: KAFKA_ZOOKEEPER_CONNECT
+                  value: zookeeper:2181             
+                - name: KAFKA_PORT
+                  value: "9092"   
+                  
+    
+  - apiVersion: apps/v1 #EVENT deployment
+    kind: Deployment
+    metadata:
+      name: event
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: event
+      template:
+        metadata:
+          labels:
+            app: event
+        spec:
+          containers:
+            - name: event
+              image: sport_event
+              imagePullPolicy: Never
+              ports:
+                - containerPort: 8080
+              env:
+                - name: MYSQL_DATABASE
+                  value: sport
+                - name: MYSQL_HOST
+                  value: mysqldb 
+
+                  
+  - apiVersion: apps/v1 #CONSUMER_LOGGING deployment
+    kind: Deployment
+    metadata:
+      name: consuemr-logging
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: consuemr-logging
+      template:
+        metadata:
+          labels:
+            app: consuemr-logging
+        spec:
+          containers:
+            - name: consuemr-logging
+              image: sport_consumer_logging
+              imagePullPolicy: Never
+              ports:
+                - containerPort: 8082
+              env:
+                - name: MYSQL_DATABASE
+                  value: sport
+                - name: MYSQL_HOST
+                  value: mysqldb 
+                  
+     
+  - apiVersion: apps/v1 #API_GATEWAY deployment
+    kind: Deployment
+    metadata:
+      name: api-gateway
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: api-gateway
+      template:
+        metadata:
+          labels:
+            app: api-gateway
+        spec:
+          containers:
+            - name: api-gateway
+              image: sport_api_gateway
+              imagePullPolicy: Never
+              ports:
+                - containerPort: 9000
+              
+    
+
+
+    
+    
+  - apiVersion: v1 #VOLUME
+    kind: PersistentVolumeClaim
+    metadata:
+      labels:
+        app: mystorage
+      name: mystorage
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 100Mi
+    status: {}
+  
+kind: List
+metadata: {}
