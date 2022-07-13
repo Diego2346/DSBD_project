@@ -1,4 +1,4 @@
-> **[Progetto DSBD]{.ul} Diego Calabretta 1000012346**
+ ***Progetto DSBD Diego Calabretta 1000012346***
 
 Il progetto consiste in un sistema di gestione di risultati sportivi e
 contiene i seguenti microservizi:
@@ -10,14 +10,11 @@ caratterizzata da:\
 squadraCasa, squadraOspite, puteggioCasa, punteggioOspite, data. Il
 microservizio contiene il controller con le seguenti API che
 interagiscono con il database:
-
 > 1)GET event/all : per accedere a tutti gli eventi\
 > 2)GET event/{id}: accedere ad un evento per id\
 > 3)GET event/squadra/{squadra}: accedere ad un evento per squadra, che
-> sia
->
-> squadraOspite o squadraCasa\
-> 4)GET event/data/{data(yyyy-mm-dd)}: accedere ad un evento per data
+> sia squadraOspite o squadraCasa\
+> 4)GET event/data/{data(yyyy-mm-dd)}: accedere ad un evento per data\
 > 5)POST event/add: aggiungere evento\
 > 6)DELETE event/{id}: eliminare evento per id
 
@@ -44,17 +41,17 @@ Microservizio per gestire il database "Sport", esso conterrà le tabelle
 da Consumer logging. I parametri del database sono presenti nel file
 ".env"
 
-> •**Zookeeper, Kafka**
+•**Zookeeper, Kafka**
 
 Microservizi per gestire il broker e i messaggi Kafka.
 
-> **Docker**
+-**Docker**
 
 I microservizi vengono inseriti in containers tramite il file
 "docker-compose.yml". Pertanto, è possibile fare la build dei containers
 ed eseguirli tramite i comandi: docker-compose build, docker-compose up
 
-**Kubernetes**
+-**Kubernetes**
 
 Il deployment dei microservizi è gestito tramite il file
 "deployment.yml". È possibile eseguire il deployment con Minikube con il
@@ -62,7 +59,7 @@ comando:
 
 kubectl apply -f deployment.yml
 
-**Analisi sulle serie temporali**
+-**Analisi sulle serie temporali**
 
 Le analisi sulle serie temporali sono effettuate in un notebook python\
 "TS_Analysis_ARIMA.ipynb" contenuto all'interno della cartella "Time
